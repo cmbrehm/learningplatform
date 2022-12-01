@@ -8,6 +8,16 @@ export type AmplifyDependentResourcesAttributes = {
             "UserPoolName": "string",
             "AppClientIDWeb": "string",
             "AppClientID": "string"
+        },
+        "userPoolGroups": {
+            "teacherGroupRole": "string",
+            "studentGroupRole": "string"
+        }
+    },
+    "api": {
+        "learningplatform": {
+            "GraphQLAPIIdOutput": "string",
+            "GraphQLAPIEndpointOutput": "string"
         }
     }
 }

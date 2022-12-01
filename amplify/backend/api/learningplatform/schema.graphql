@@ -1,41 +1,55 @@
-# This "input" configures a global authorization rule to enable public access to
-# all models in this schema. Learn more about authorization rules here: https://docs.amplify.aws/cli/graphql/authorization-rules
-input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONLY!
-
 type Course
   @model
   @auth(
     rules: [
-      { allow: groups, groups: ["Teachers"], operations: [create, update, read, delete] }
-      { allow: groups, groups: ["Students"], operations: [read] }
+      {allow: owner, ownerField: "teacher", operations: [ update, read, delete ]}
+      { allow: groups, groups: ["teacher"], operations: [ create ] }
+      { allow: groups, groups: ["student"], operations: [read] }
     ]
   ) {
-  id: ID!
+  teacher: String!
   title: String!
-  class: String
+  lessons: [Lesson] @hasMany
+  instances: [CourseInstance] @hasMany
 }
 
-type Student @model @auth(rules: [{ allow: owner }]) {
-  id: ID!
-  name: String!
-  class: [Class]
-  course: [Course]
-}
-
-type Class 
+type Lesson
   @model
   @auth(
     rules: [
-      { allow: groups, groups: ["Teachers"], operations: [create, update, read, delete] }
-      { allow: groups, groups: ["Students"], operations: [read] }
+      {allow: owner, ownerField: "teacher", operations: [ update, read, delete ]}
+      { allow: groups, groups: ["teacher"], operations: [ create ] }
+      { allow: groups, groups: ["student"], operations: [read] }
     ]
   ) {
-  id: ID!
-  student: [Student]
-  }
+  title: String!
+  teacher: String!
+}
 
-type Teacher @model @auth(rules: [{ allow: owner }]) {
-  id: ID!
-  name: String!
-  courses: [Course]
+type CourseInstance
+@model
+@auth(
+  rules: [
+    {allow: owner, ownerField: "teacher", operations: [ update, read, delete ]}
+    { allow: groups, groups: ["teacher"], operations: [ create ] }
+    { allow: groups, groups: ["student"], operations: [read] }
+  ]
+)
+{
+  startDate: String!
+  course: Course! @hasOne
+  registrations: [CourseRegistration] @hasMany
+}
+
+type CourseRegistration
+@model
+@auth(
+  rules: [
+    {allow: owner, ownerField: "studentId", operations: [ update, read, delete ]}
+    { allow: groups, groups: ["teacher"], operations: [ update, read ] }
+    { allow: groups, groups: ["student"], operations: [ create ] }
+  ])
+{
+  studentId: String
+  status: String
 }

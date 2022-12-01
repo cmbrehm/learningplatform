@@ -16,5 +16,27 @@
         "learningplatform3ce3c1e5": {}
       }
     }
+  },
+  "test": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-learningplatform-test-95024-authRole",
+      "UnauthRoleArn": "arn:aws:iam::236361277585:role/amplify-learningplatform-test-95024-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::236361277585:role/amplify-learningplatform-test-95024-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-learningplatform-test-95024-deployment",
+      "UnauthRoleName": "amplify-learningplatform-test-95024-unauthRole",
+      "StackName": "amplify-learningplatform-test-95024",
+      "StackId": "arn:aws:cloudformation:us-east-1:236361277585:stack/amplify-learningplatform-test-95024/7e1dcfc0-7187-11ed-addb-1249b96ecf2f",
+      "AmplifyAppId": "d25gm2wecbbl16"
+    },
+    "categories": {
+      "auth": {
+        "learningplatform3ce3c1e5": {},
+        "userPoolGroups": {}
+      },
+      "api": {
+        "learningplatform": {}
+      }
+    }
   }
 }
