@@ -8,7 +8,7 @@ type Course
     ]
   ) {
   id: ID!
-  teacher: String @auth(rules: [{ allow: owner, operations: [create, read, delete] }])
+  teacher: String @auth(rules: [{ allow: owner, ownerField: "teacher", operations: [create, read, delete] }])
   title: String!
   lessons: [Lesson] @hasMany(indexName: "byCourse", fields: ["id"])
   instances: [CourseInstance] @hasMany(indexName: "byCourse", fields: ["id"])
@@ -24,12 +24,12 @@ type Lesson
     ]
   ) {
   title: String!
-  teacher: String @auth(rules: [{ allow: owner, operations: [create, read, delete] }])
+  teacher: String @auth(rules: [{ allow: owner, ownerField: "teacher", operations: [create, read, delete] }])
   courseID: ID! @index(name:"byCourse", sortKeyFields: ["title"])
 }
 
 type CourseInstance
-@model
+@model(subscriptions: null)
 @auth(
   rules: [
     {allow: owner, ownerField: "teacher", operations: [ update, read, delete ]}
@@ -42,7 +42,7 @@ type CourseInstance
   startDate: String!
   courseID: ID! @index(name:"byCourse", sortKeyFields: ["startDate"])
   registrations: [CourseRegistration] @hasMany(indexName: "byInstance", fields: ["id"])
-  teacher: String
+  teacher: String @auth(rules: [{ allow: owner, ownerField: "teacher", operations: [create, read, delete] }])
 }
 
 type CourseRegistration
@@ -54,7 +54,18 @@ type CourseRegistration
     { allow: groups, groups: ["student"], operations: [ create ] }
   ])
 {
+  id: ID! @auth(rules: [
+    { allow: owner, ownerField: "studentId", operations: [create, read, delete] }
+    { allow: groups, groups: ["teacher"], operations: [ read, update ]},
+    { allow: groups, groups: ["student"], operations: [ create ] }
+    ])
   courseInstanceID: ID! @index(name:"byInstance", sortKeyFields: ["studentId"])
-  studentId: String
-  status: String!
+  studentId: String @auth(rules: [
+    { allow: owner, ownerField: "studentId", operations: [create, read, delete] }
+    { allow: groups, groups: ["teacher"], operations: [ read ]}
+    ])
+  status: String @default(value: "REQUESTED") @auth(rules: [
+    { allow: owner, ownerField: "studentId", operations: [ read ] }
+    { allow: groups, groups: ["teacher"], operations: [ read, update ]}
+    ])
 }
