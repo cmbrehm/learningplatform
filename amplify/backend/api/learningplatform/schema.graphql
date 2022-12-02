@@ -1,29 +1,31 @@
 type Course
-  @model
+  @model(subscriptions: null)
   @auth(
     rules: [
-      {allow: owner, ownerField: "teacher", operations: [ update, read, delete ]}
+      {allow: owner, ownerField: "teacher", operations: [ create, update, read, delete ]}
       { allow: groups, groups: ["teacher"], operations: [ create ] }
-      { allow: groups, groups: ["student"], operations: [read] }
+      { allow: groups, groups: ["student"], operations: [ get ] }
     ]
   ) {
-  teacher: String!
+  id: ID!
+  teacher: String @auth(rules: [{ allow: owner, operations: [create, read, delete] }])
   title: String!
-  lessons: [Lesson] @hasMany
-  instances: [CourseInstance] @hasMany
+  lessons: [Lesson] @hasMany(indexName: "byCourse", fields: ["id"])
+  instances: [CourseInstance] @hasMany(indexName: "byCourse", fields: ["id"])
 }
 
 type Lesson
-  @model
+@model(subscriptions: null)
   @auth(
     rules: [
       {allow: owner, ownerField: "teacher", operations: [ update, read, delete ]}
       { allow: groups, groups: ["teacher"], operations: [ create ] }
-      { allow: groups, groups: ["student"], operations: [read] }
+      { allow: groups, groups: ["student"], operations: [ get ] }
     ]
   ) {
   title: String!
-  teacher: String!
+  teacher: String @auth(rules: [{ allow: owner, operations: [create, read, delete] }])
+  courseID: ID! @index(name:"byCourse", sortKeyFields: ["title"])
 }
 
 type CourseInstance
@@ -32,13 +34,15 @@ type CourseInstance
   rules: [
     {allow: owner, ownerField: "teacher", operations: [ update, read, delete ]}
     { allow: groups, groups: ["teacher"], operations: [ create ] }
-    { allow: groups, groups: ["student"], operations: [read] }
+    { allow: groups, groups: ["student"], operations: [ get ] }
   ]
 )
 {
+  id: ID!
   startDate: String!
-  course: Course! @hasOne
-  registrations: [CourseRegistration] @hasMany
+  courseID: ID! @index(name:"byCourse", sortKeyFields: ["startDate"])
+  registrations: [CourseRegistration] @hasMany(indexName: "byInstance", fields: ["id"])
+  teacher: String
 }
 
 type CourseRegistration
@@ -50,6 +54,7 @@ type CourseRegistration
     { allow: groups, groups: ["student"], operations: [ create ] }
   ])
 {
+  courseInstanceID: ID! @index(name:"byInstance", sortKeyFields: ["studentId"])
   studentId: String
-  status: String
+  status: String!
 }
