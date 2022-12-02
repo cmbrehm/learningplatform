@@ -1,41 +1,60 @@
-# This "input" configures a global authorization rule to enable public access to
-# all models in this schema. Learn more about authorization rules here: https://docs.amplify.aws/cli/graphql/authorization-rules
-input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONLY!
-
 type Course
-  @model
+  @model(subscriptions: null)
   @auth(
     rules: [
-      { allow: groups, groups: ["Teachers"], operations: [create, update, read, delete] }
-      { allow: groups, groups: ["Students"], operations: [read] }
+      {allow: owner, ownerField: "teacher", operations: [ create, update, read, delete ]}
+      { allow: groups, groups: ["teacher"], operations: [ create ] }
+      { allow: groups, groups: ["student"], operations: [ get ] }
     ]
   ) {
   id: ID!
+  teacher: String @auth(rules: [{ allow: owner, operations: [create, read, delete] }])
   title: String!
-  class: String
+  lessons: [Lesson] @hasMany(indexName: "byCourse", fields: ["id"])
+  instances: [CourseInstance] @hasMany(indexName: "byCourse", fields: ["id"])
 }
 
-type Student @model @auth(rules: [{ allow: owner }]) {
-  id: ID!
-  name: String!
-  class: [Class]
-  course: [Course]
-}
-
-type Class 
-  @model
+type Lesson
+@model(subscriptions: null)
   @auth(
     rules: [
-      { allow: groups, groups: ["Teachers"], operations: [create, update, read, delete] }
-      { allow: groups, groups: ["Students"], operations: [read] }
+      {allow: owner, ownerField: "teacher", operations: [ update, read, delete ]}
+      { allow: groups, groups: ["teacher"], operations: [ create ] }
+      { allow: groups, groups: ["student"], operations: [ get ] }
     ]
   ) {
-  id: ID!
-  student: [Student]
-  }
+  title: String!
+  teacher: String @auth(rules: [{ allow: owner, operations: [create, read, delete] }])
+  courseID: ID! @index(name:"byCourse", sortKeyFields: ["title"])
+}
 
-type Teacher @model @auth(rules: [{ allow: owner }]) {
+type CourseInstance
+@model
+@auth(
+  rules: [
+    {allow: owner, ownerField: "teacher", operations: [ update, read, delete ]}
+    { allow: groups, groups: ["teacher"], operations: [ create ] }
+    { allow: groups, groups: ["student"], operations: [ get ] }
+  ]
+)
+{
   id: ID!
-  name: String!
-  courses: [Course]
+  startDate: String!
+  courseID: ID! @index(name:"byCourse", sortKeyFields: ["startDate"])
+  registrations: [CourseRegistration] @hasMany(indexName: "byInstance", fields: ["id"])
+  teacher: String
+}
+
+type CourseRegistration
+@model
+@auth(
+  rules: [
+    {allow: owner, ownerField: "studentId", operations: [ update, read, delete ]}
+    { allow: groups, groups: ["teacher"], operations: [ update, read ] }
+    { allow: groups, groups: ["student"], operations: [ create ] }
+  ])
+{
+  courseInstanceID: ID! @index(name:"byInstance", sortKeyFields: ["studentId"])
+  studentId: String
+  status: String!
 }
